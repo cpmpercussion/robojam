@@ -4,8 +4,8 @@ from __future__ import print_function
 import numpy as np
 # import pandas as pd
 import tensorflow as tf
-import mixture_2d_normals
-import mixture_1d_normals
+from robojam import mixture_2d_normals
+from robojam import mixture_1d_normals
 
 sess = tf.InteractiveSession()
 

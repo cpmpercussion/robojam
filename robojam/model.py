@@ -23,7 +23,8 @@ RANDOM_SEED = 2345  # TF Random Seed.
 
 
 class MixtureRNN(object):
-    """Mixture Density Network RNN using the SketchRNN's hand-coded loss function for the mixture of 2D Normals."""
+    """Mixture Density Network RNN for generating touchscreen interaction data. Includes a mxture
+    of 2D normals for modelling space, and a mixture of 1D normals for modelling time."""
 
     def __init__(self, mode=NET_MODE_TRAIN, n_hidden_units=128, n_mixtures=24, batch_size=64, sequence_length=128, n_layers=1):
         """
