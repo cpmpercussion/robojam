@@ -15,6 +15,8 @@ sock.setblocking(0)
 
 # OSC functions
 
+## Todo: get these to work.
+
 def send_sound_command(osc_datagram):
     """Send OSC message via UDP."""
     sock.sendto(osc_datagram, (ADDRESS, PORT))
