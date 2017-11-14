@@ -5,14 +5,14 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import time
-import mixture_2d_normals
-import mixture_1d_normals
+from . import mixture_2d_normals
+from . import mixture_1d_normals
 
-tf.logging.set_verbosity(tf.logging.INFO) # set logging.
+tf.logging.set_verbosity(tf.logging.INFO)  # set logging.
 
 NET_MODE_TRAIN = 'train'
 NET_MODE_RUN = 'run'
-MODEL_DIR = "./models/"
+MODEL_DIR = "../models/"
 LOG_PATH = "./output-logs/"
 
 SUMMARY_WRITING_FREQUENCY = 20  # write the summary variables every 'n' steps. 20 might be good for big models.
