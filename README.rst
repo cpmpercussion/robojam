@@ -1,8 +1,10 @@
-# Experiments with a Mixture Density RNN to create Tiny Touch Screen Performances
+Experiments with a Mixture Density RNN to create touchscreen performances
+=========================================================================
 
 The goal of these scripts is to train a Mixture Density RNN model of the Tiny Touch Screen corpus and to use it as to generate new performances.
 
-## Data Format.
+Data Format.
+------------
 
 Tiny Touchscreen Performances should be stored in numpy arrays in the following format:
 
