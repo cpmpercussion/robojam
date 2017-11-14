@@ -78,7 +78,7 @@ class SequenceDataLoader(object):
         """
         xs = []
         for i in range(len(self.corpus) // self.num_steps):
-            example = self.corpus[i * self.num_steps : (i*self.num_steps) + self.num_steps]
+            example = self.corpus[i * self.num_steps: (i * self.num_steps) + self.num_steps]
             xs.append(example)
         print("Total non-overlapping examples:", str(len(xs)))
         return xs
