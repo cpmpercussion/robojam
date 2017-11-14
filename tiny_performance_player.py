@@ -35,3 +35,5 @@ def playPerformance_XY_only(perf, z=20.0):
     for row in perf.iterrows():
         # Timer(row[2],sendTouch,args=[row[0]['x'],row[1]['y'],z]).start() # used with time index
         Timer(row[1].time, sendTouch, args=[row[1].x, row[1].y, z]).start()  # used with time in column
+
+## Todo, remove dependency on OSC library.
