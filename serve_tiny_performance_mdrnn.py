@@ -5,7 +5,7 @@ import json
 import time
 from io import StringIO
 import pandas as pd
-import mixture_rnn
+import robojam
 from flask import Flask, request
 from flask_cors import CORS
 
@@ -36,10 +36,10 @@ def reaction():
         input_perf = params['perf']
     input_perf_df = pd.read_csv(StringIO(input_perf), parse_dates=False)
     print(input_perf_df)
-    input_perf_array = mixture_rnn.perf_df_to_array(input_perf_df)
+    input_perf_array = robojam.perf_df_to_array(input_perf_df)
     # Run the response prediction:
-    out_perf = mixture_rnn.condition_and_generate(net, input_perf_array, temp=TEMP, model_file=MODEL_FILE)
-    out_df = mixture_rnn.perf_array_to_df(out_perf)
+    out_perf = robojam.condition_and_generate(net, input_perf_array, temp=TEMP, model_file=MODEL_FILE)
+    out_df = robojam.perf_array_to_df(out_perf)
     out_df.set_value(out_df[:1].index, 'moving', 0)  # set first touch to a tap
     out_perf_string = out_df.to_csv()
     json_data = json.dumps({'response': out_perf_string})
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     """Start a TinyPerformance MDRNN Server"""
     print("Starting TinyPerformance Responder.")
     print('Loading the model')
-    net = mixture_rnn.MixtureRNN(mode=mixture_rnn.NET_MODE_RUN, n_hidden_units=N_UNITS, n_mixtures=N_MIX, batch_size=1, sequence_length=1, n_layers=N_LAYERS)
+    net = robojam.MixtureRNN(mode=robojam.NET_MODE_RUN, n_hidden_units=N_UNITS, n_mixtures=N_MIX, batch_size=1, sequence_length=1, n_layers=N_LAYERS)
     print('Starting the API')
     app.run(host='0.0.0.0')
 
