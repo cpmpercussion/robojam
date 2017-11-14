@@ -1,13 +1,37 @@
 """ Plays back tiny performances by sending OSC messages to Pure Data
     Uses the pyOSC library, so only works under Python 2.7.x """
 
-import OSC
+import socket
 import random
 from threading import Timer
 
-client = OSC.OSCClient()
-address = ("localhost", 5000)
+ADDRESS = "localhost"
+PORT = 5000
+INT_FLOAT_DGRAM_LEN = 4
+STRING_DGRAM_PAD = 4
 
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.setblocking(0)
+
+# OSC functions
+
+def send_sound_command(osc_datagram):
+    """Send OSC message via UDP."""
+    sock.sendto(osc_datagram, (ADDRESS, PORT))
+
+def pad_dgram_four_bytes(dgram):
+    """Pad a datagram up to a multiple of 4 bytes."""
+    return (dgram + (b'\x00' * (4-len(dgram)%4)))
+
+def touch_message_datagram(pos = 0.0):
+    """Construct an osc message with address /touch and one float."""
+    dgram = b''
+    dgram += pad_dgram_four_bytes("/touch".encode('utf-8'))
+    dgram += pad_dgram_four_bytes(",f")
+    dgram += struct.pack('>f', pos)
+    return dgram
+
+# High level sound functions.
 
 def setSynth(instrument="strings"):
     """Sends an OSC message to set the synth instrument."""
