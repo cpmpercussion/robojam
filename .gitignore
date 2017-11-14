@@ -2,6 +2,7 @@
 
 models
 datasets
+output-logs
 
 # standard python gitignore
 
