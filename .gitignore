@@ -3,6 +3,7 @@
 models
 datasets
 output-logs
+notebooks/output-logs
 
 # standard python gitignore
 
