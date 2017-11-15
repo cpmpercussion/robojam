@@ -51,6 +51,7 @@ class TouchScreenOscClient(object):
 
     def playPerformance(self, perf):
         """Schedule performance of a tiny performance dataframe."""
+        # Dataframe must have abolute time (in seconds) as index, and 'x', 'y', and 'z' as column names.
         for row in perf.iterrows():
             Timer(row[0], self.sendTouch, args=[row[1]['x'], row[1]['y'], row[1]['z']]).start()
 
