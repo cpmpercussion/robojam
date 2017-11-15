@@ -54,8 +54,7 @@ class TouchScreenOscClient(object):
         for row in perf.iterrows():
             Timer(row[0], self.sendTouch, args=[row[1]['x'], row[1]['y'], row[1]['z']]).start()
 
-    def playPerformance_XY_only(self, perf, z=20.0):
-        """Schedule playback of a tiny performance dataframe with fake z-values."""
-        for row in perf.iterrows():
-            # Timer(row[2],sendTouch,args=[row[0]['x'],row[1]['y'],z]).start() # used with time index
-            Timer(row[1].time, self.sendTouch, args=[row[1].x, row[1].y, z]).start()  # used with time in column
+    # def playPerformance_XY_only(self, perf, z=20.0):
+    #     """Schedule playback of a tiny performance dataframe with fake z-values."""
+    #     for row in perf.iterrows():
+    #         Timer(row[1].time, self.sendTouch, args=[row[1].x, row[1].y, z]).start()  # used with time in column
