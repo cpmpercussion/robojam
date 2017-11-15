@@ -1,4 +1,4 @@
-""" Mixture Model Operations as used in Sketch RNN """
+""" Mixture Model Operations as used in SketchRNN: A Neural Representation of Sketch Drawings. David Ha, Douglas Eck. 2017. http://arxiv.org/abs/1704.03477"""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
