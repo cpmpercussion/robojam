@@ -10,7 +10,7 @@ More information is in the paper (to be added soon).
 
 Here's an example:
 
-image:: https://github.com/cpmpercussion/robojam/raw/master/notebooks/example_unconditioned_1.png
+![](https://github.com/cpmpercussion/robojam/raw/master/notebooks/example_unconditioned_1.png)
 
 Data Format.
 ------------
@@ -31,6 +31,8 @@ Todo:
 Examples:
 ---------
 
-image:: https://github.com/cpmpercussion/robojam/raw/master/notebooks/example_conditioned_1.png
-image:: https://github.com/cpmpercussion/robojam/raw/master/notebooks/example_conditioned_2.png
-image:: https://github.com/cpmpercussion/robojam/raw/master/notebooks/example_unconditioned_2.png
+![](https://github.com/cpmpercussion/robojam/raw/master/notebooks/example_conditioned_1.png)
+
+![](https://github.com/cpmpercussion/robojam/raw/master/notebooks/example_conditioned_2.png)
+
+![](https://github.com/cpmpercussion/robojam/raw/master/notebooks/example_unconditioned_2.png)
