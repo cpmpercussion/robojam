@@ -49,13 +49,13 @@ class TouchScreenOscClient(object):
         dgram += struct.pack('>f', z)
         self.send_osc_message(dgram, address, port)
 
-    def playPerformance(self, perf):
+    def playPerformance(self, perf_df):
         """Schedule performance of a tiny performance dataframe."""
         # Dataframe must have abolute time (in seconds) as index, and 'x', 'y', and 'z' as column names.
-        for row in perf.iterrows():
-            Timer(row[0], self.sendTouch, args=[row[1]['x'], row[1]['y'], row[1]['z']]).start()
+        for row in perf_df.iterrows():
+            Timer(row[0], self.sendTouch, args=[row[1].x, row[1].y, row[1].z]).start()  # used with time in column
 
-    # def playPerformance_XY_only(self, perf, z=20.0):
-    #     """Schedule playback of a tiny performance dataframe with fake z-values."""
-    #     for row in perf.iterrows():
-    #         Timer(row[1].time, self.sendTouch, args=[row[1].x, row[1].y, z]).start()  # used with time in column
+    def playPerformance_XY_only(self, perf_df, z=20.0):
+        """Schedule playback of a tiny performance dataframe with fake z-values."""
+        for row in perf_df.iterrows():
+            Timer(row[0], self.sendTouch, args=[row[1].x, row[1].y, z]).start()  # used with time in column
