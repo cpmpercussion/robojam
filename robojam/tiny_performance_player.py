@@ -32,7 +32,7 @@ class TouchScreenOscClient(object):
         dgram += self.pad_dgram_four_bytes(instrument.encode('utf-8'))
         self.send_osc_message(dgram, address, port)
 
-    def chooseRandomSynth(self):
+    def setSynthRandom(self):
         """Choose a random synth for performance playback"""
         self.setSynth(random.choice(["chirp", "keys", "drums", "strings"]))
 

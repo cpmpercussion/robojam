@@ -1,4 +1,4 @@
-""" Loads tiny performance corpus into dataframes and numpy arrays suitable for training an MD-RNN. """
+""" Loads touchscreen performance corpora into dataframes and numpy arrays suitable for training an MD-RNN. """
 from __future__ import print_function
 import os
 import pandas as pd
@@ -8,7 +8,7 @@ import random
 
 
 class TinyPerformanceLoader(object):
-    """Manages the MicroJam tiny performance corpus and can export sequence or dataframe versions or save to an h5 file."""
+    """Manages a touchscreen performance corpus and can export sequence or dataframe versions or save to an h5 file."""
 
     def __init__(self, perf_location="../performances/", verbose=True):
         """
@@ -151,7 +151,7 @@ class TinyPerformanceLoader(object):
 
 
 def main():
-    """Load up the MicroJam Tiny-Performance and export as an h5 file."""
+    """Load up the default touchscreen performance corpus and export as an h5 file."""
     data_loader = TinyPerformanceLoader()
     data_loader.archive_corpus()
 
