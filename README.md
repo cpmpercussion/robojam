@@ -1,6 +1,8 @@
 RoboJam: A Mixture Density RNN for creating touchscreen performances
 ====================================================================
 
+[![DOI](https://zenodo.org/badge/110691324.svg)](https://zenodo.org/badge/latestdoi/110691324)
+
 RoboJam is a Mixture Density RNN and web app for creating and responding to musical touchscreen performances.
 The RNN design here is a novel application of mixture density network (MDN) to musical touchscreen data.
 This data consists of a sequence of touch interaction events in the format `[x, y, dt]`. 
