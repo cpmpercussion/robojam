@@ -10,6 +10,8 @@ This network learns to predict these events so that a user's interaction can be 
 The web app runs uses Flask with a public API that can be used for interaction with touchscreen music apps running on phones or tablets.
 More information is in the paper (to be added soon).
 
+Have a look at [how RoboJam is used in a touchscreen app](https://vimeo.com/242251501).
+
 Here's an example:
 
 ![](https://github.com/cpmpercussion/robojam/raw/master/notebooks/example_unconditioned_1.png)
