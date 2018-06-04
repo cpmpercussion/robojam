@@ -82,3 +82,14 @@ class SequenceDataLoader(object):
             xs.append(example)
         print("Total non-overlapping examples:", str(len(xs)))
         return xs
+    
+    def seq_to_singleton_format(self):
+        """
+        Return the examples in seq to singleton format.
+        """
+        xs = []
+        ys = []
+        for ex in self.examples:
+            xs.append(ex[:-1])
+            ys.append(ex[-1])
+        return (xs,ys)
