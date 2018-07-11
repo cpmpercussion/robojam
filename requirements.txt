@@ -5,3 +5,4 @@ json
 flask
 flask_cors
 pyopenssl
+h5py
