@@ -17,9 +17,9 @@ cors = CORS(app)
 # Network hyper-parameters:
 N_MIX = 16
 N_LAYERS = 3
-N_UNITS = 512
+N_UNITS = 256
 TEMP = 1.02
-MODEL_FILE = 'models/mdrnn-2d-1d-3layers-512units-16mixtures'
+MODEL_FILE = 'models/mdrnn-2d-1d-3layers-256units-16mixtures'
 
 
 @app.route("/api/predict", methods=['POST'])
