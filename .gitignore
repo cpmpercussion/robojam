@@ -1,11 +1,11 @@
 # robojam specific gitignore
-
+keys
 models
 datasets
 performances
 output-logs
 notebooks/output-logs
-
+.DS_Store
 # standard python gitignore
 
 # Byte-compiled / optimized / DLL files
