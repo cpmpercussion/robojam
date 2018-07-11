@@ -53,7 +53,7 @@ if __name__ == "__main__":
     print('Loading the model')
     net = robojam.MixtureRNN(mode=robojam.NET_MODE_RUN, n_hidden_units=N_UNITS, n_mixtures=N_MIX, batch_size=1, sequence_length=1, n_layers=N_LAYERS)
     print('Starting the API')
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', ssl_context='adhoc')
 
 
 # Command line tests.
