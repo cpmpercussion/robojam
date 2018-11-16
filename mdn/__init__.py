@@ -2,15 +2,17 @@
 A Mixture Density Layer for Keras
 cpmpercussion: Charles Martin (University of Oslo) 2018
 https://github.com/cpmpercussion/keras-mdn-layer
+
+Hat tip to [Omimo's Keras MDN layer](https://github.com/omimo/Keras-MDN) for a starting point for this code.
 """
 import keras
 from keras import backend as K
 from keras.layers import Dense
 from keras.engine.topology import Layer
 import numpy as np
-from tensorflow.contrib.distributions import Categorical, Mixture, MultivariateNormalDiag
 import tensorflow as tf
-
+import tensorflow_probability as tfp
+tfd = tfp.distributions
 
 def elu_plus_one_plus_epsilon(x):
     """ELU activation with a very small addition to help prevent NaN in loss."""
@@ -53,7 +55,8 @@ class MDN(Layer):
         return mdn_out
 
     def compute_output_shape(self, input_shape):
-        return (input_shape[0], self.output_dim)
+        """Returns output shape, showing the number of mixture parameters."""
+        return (input_shape[0], (2 * self.output_dim * self.num_mix) + self.num_mix)
 
     def get_config(self):
         config = {
@@ -68,17 +71,22 @@ def get_mixture_loss_func(output_dim, num_mixes):
     """Construct a loss functions for the MDN layer parametrised by number of mixtures."""
     # Construct a loss function with the right number of mixtures and outputs
     def loss_func(y_true, y_pred):
+        # Reshape inputs in case this is used in a TimeDistribued layer
+        y_pred = tf.reshape(y_pred, [-1, (2 * num_mixes * output_dim) + num_mixes], name='reshape_ypreds')
+        y_true = tf.reshape(y_true, [-1, output_dim], name='reshape_ytrue')
+        # Split the inputs into paramaters
         out_mu, out_sigma, out_pi = tf.split(y_pred, num_or_size_splits=[num_mixes * output_dim,
                                                                          num_mixes * output_dim,
                                                                          num_mixes],
-                                             axis=1, name='mdn_coef_split')
-        cat = Categorical(logits=out_pi)
+                                             axis=-1, name='mdn_coef_split')
+        # Construct the mixture models
+        cat = tfd.Categorical(logits=out_pi)
         component_splits = [output_dim] * num_mixes
         mus = tf.split(out_mu, num_or_size_splits=component_splits, axis=1)
         sigs = tf.split(out_sigma, num_or_size_splits=component_splits, axis=1)
-        coll = [MultivariateNormalDiag(loc=loc, scale_diag=scale) for loc, scale
+        coll = [tfd.MultivariateNormalDiag(loc=loc, scale_diag=scale) for loc, scale
                 in zip(mus, sigs)]
-        mixture = Mixture(cat=cat, components=coll)
+        mixture = tfd.Mixture(cat=cat, components=coll)
         loss = mixture.log_prob(y_true)
         loss = tf.negative(loss)
         loss = tf.reduce_mean(loss)
@@ -90,20 +98,24 @@ def get_mixture_loss_func(output_dim, num_mixes):
 
 
 def get_mixture_sampling_fun(output_dim, num_mixes):
-    """Construct a sampling function for the MDN layer parametrised by mixtures and output dimension."""
-    # Construct a loss function with the right number of mixtures and outputs
+    """Construct a TensorFlor sampling operation for the MDN layer parametrised
+    by mixtures and output dimension. This can be used in a Keras model to
+    generate samples directly."""
+
     def sampling_func(y_pred):
+        # Reshape inputs in case this is used in a TimeDistribued layer
+        y_pred = tf.reshape(y_pred, [-1, (2 * num_mixes * output_dim) + num_mixes], name='reshape_ypreds')
         out_mu, out_sigma, out_pi = tf.split(y_pred, num_or_size_splits=[num_mixes * output_dim,
                                                                          num_mixes * output_dim,
                                                                          num_mixes],
                                              axis=1, name='mdn_coef_split')
-        cat = Categorical(logits=out_pi)
+        cat = tfd.Categorical(logits=out_pi)
         component_splits = [output_dim] * num_mixes
         mus = tf.split(out_mu, num_or_size_splits=component_splits, axis=1)
         sigs = tf.split(out_sigma, num_or_size_splits=component_splits, axis=1)
-        coll = [MultivariateNormalDiag(loc=loc, scale_diag=scale) for loc, scale
+        coll = [tfd.MultivariateNormalDiag(loc=loc, scale_diag=scale) for loc, scale
                 in zip(mus, sigs)]
-        mixture = Mixture(cat=cat, components=coll)
+        mixture = tfd.Mixture(cat=cat, components=coll)
         samp = mixture.sample()
         # Todo: temperature adjustment for sampling function.
         return samp
@@ -118,17 +130,20 @@ def get_mixture_mse_accuracy(output_dim, num_mixes):
     that takes one sample and compares to the true value."""
     # Construct a loss function with the right number of mixtures and outputs
     def mse_func(y_true, y_pred):
+        # Reshape inputs in case this is used in a TimeDistribued layer
+        y_pred = tf.reshape(y_pred, [-1, (2 * num_mixes * output_dim) + num_mixes], name='reshape_ypreds')
+        y_true = tf.reshape(y_true, [-1, output_dim], name='reshape_ytrue')
         out_mu, out_sigma, out_pi = tf.split(y_pred, num_or_size_splits=[num_mixes * output_dim,
                                                                          num_mixes * output_dim,
                                                                          num_mixes],
                                              axis=1, name='mdn_coef_split')
-        cat = Categorical(logits=out_pi)
+        cat = tfd.Categorical(logits=out_pi)
         component_splits = [output_dim] * num_mixes
         mus = tf.split(out_mu, num_or_size_splits=component_splits, axis=1)
         sigs = tf.split(out_sigma, num_or_size_splits=component_splits, axis=1)
-        coll = [MultivariateNormalDiag(loc=loc, scale_diag=scale) for loc, scale
+        coll = [tfd.MultivariateNormalDiag(loc=loc, scale_diag=scale) for loc, scale
                 in zip(mus, sigs)]
-        mixture = Mixture(cat=cat, components=coll)
+        mixture = tfd.Mixture(cat=cat, components=coll)
         samp = mixture.sample()
         mse = tf.reduce_mean(tf.square(samp - y_true), axis=-1)
         # Todo: temperature adjustment for sampling functon.
@@ -141,7 +156,13 @@ def get_mixture_mse_accuracy(output_dim, num_mixes):
 
 def split_mixture_params(params, output_dim, num_mixes):
     """Splits up an array of mixture parameters into mus, sigmas, and pis
-    depending on the number of mixtures and output dimension."""
+    depending on the number of mixtures and output dimension.
+
+    Arguments:
+    params -- the parameters of the mixture model
+    output_dim -- the dimension of the normal models in the mixture model
+    num_mixes -- the number of mixtures represented
+    """
     mus = params[:num_mixes*output_dim]
     sigs = params[num_mixes*output_dim:2*num_mixes*output_dim]
     pi_logits = params[-num_mixes:]
@@ -149,7 +170,14 @@ def split_mixture_params(params, output_dim, num_mixes):
 
 
 def softmax(w, t=1.0):
-    """Softmax function for a list or numpy array of logits. Also adjusts temperature."""
+    """Softmax function for a list or numpy array of logits. Also adjusts temperature.
+
+    Arguments:
+    w -- a list or numpy array of logits
+
+    Keyword arguments:
+    t -- the temperature for to adjust the distribution (default 1.0)
+    """
     e = np.array(w) / t  # adjust temperature
     e -= e.max()  # subtract max to protect from exploding exp values.
     e = np.exp(e)
@@ -158,27 +186,48 @@ def softmax(w, t=1.0):
 
 
 def sample_from_categorical(dist):
-    """Samples from a categorical model PDF."""
+    """Samples from a categorical model PDF.
+
+    Arguments:
+    dist -- the parameters of the categorical model
+
+    Returns:
+    One sample from the categorical model, or -1 if sampling fails.
+    """
     r = np.random.rand(1)  # uniform random number in [0,1]
     accumulate = 0
     for i in range(0, dist.size):
         accumulate += dist[i]
         if accumulate >= r:
             return i
-    tf.logging.info('Error sampling mixture model.')
+    tf.logging.info('Error sampling categorical model.')
     return -1
 
 
-def sample_from_output(params, output_dim, num_mixes, temp=1.0):
-    """Sample from an MDN output with temperature adjustment."""
-    mus = params[:num_mixes*output_dim]
-    sigs = params[num_mixes*output_dim:2*num_mixes*output_dim]
-    pis = softmax(params[-num_mixes:], t=temp)
+def sample_from_output(params, output_dim, num_mixes, temp=1.0, sigma_temp=1.0):
+    """Sample from an MDN output with temperature adjustment.
+    This calculation is done outside of the Keras model using
+    Numpy.
+    
+    Arguments:
+    params -- the parameters of the mixture model
+    output_dim -- the dimension of the normal models in the mixture model
+    num_mixes -- the number of mixtures represented
+
+    Keyword arguments:
+    temp -- the temperature for sampling between mixture components (default 1.0)
+    sigma_temp -- the temperature for sampling from the normal distribution (default 1.0)
+
+    Returns:
+    One sample from the the mixture model.
+    """
+    mus, sigs, pi_logits = split_mixture_params(params, output_dim, num_mixes)
+    pis = softmax(pi_logits, t=temp)
     m = sample_from_categorical(pis)
     # Alternative way to sample from categorical:
     # m = np.random.choice(range(len(pis)), p=pis)
     mus_vector = mus[m*output_dim:(m+1)*output_dim]
-    sig_vector = sigs[m*output_dim:(m+1)*output_dim] * temp  # adjust for temperature
+    sig_vector = sigs[m*output_dim:(m+1)*output_dim] * sigma_temp  # adjust for temperature
     cov_matrix = np.identity(output_dim) * sig_vector
     sample = np.random.multivariate_normal(mus_vector, cov_matrix, 1)
     return sample
