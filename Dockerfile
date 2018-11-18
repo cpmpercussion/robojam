@@ -4,6 +4,8 @@
 FROM tensorflow/tensorflow:latest-py3
 MAINTAINER Charles Martin "charlepm@ifi.uio.no"
 
+RUN apt-get update
+RUN apt-get install git
 RUN git clone https://github.com/cpmpercussion/robojam.git
 RUN cd robojam
 RUN pip install -r requirements.txt
