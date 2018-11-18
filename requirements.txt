@@ -1,7 +1,7 @@
 tensorflow
+tensorflow-probability
 numpy
 pandas
-json
 flask
 flask_cors
 pyopenssl
