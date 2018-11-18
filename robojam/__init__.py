@@ -10,7 +10,6 @@ import keras
 # from .sample_data import *
 # from .tiny_performance_player import *
 # from .tiny_performance_loader import *
-SCALE_FACTOR = 10  # scales input and output from the model. Should be the same between training and inference.
 
 
 def build_robojam_model(seq_len=30, hidden_units=256, num_mixtures=5, layers=2, time_dist=True, inference=False, compile_model=True, print_summary=True):
@@ -60,7 +59,17 @@ def build_robojam_model(seq_len=30, hidden_units=256, num_mixtures=5, layers=2, 
     return model
 
 
+def load_robojam_inference_model(model_file="", layers=2, units=512, mixtures=5):
+    """Returns a Keras RoboJam model loaded from a file"""
+    # TODO: make this parse the name to get the hyperparameters.
+    # Decoding Model
+    decoder = decoder = build_robojam_model(seq_len=1, hidden_units=units, num_mixtures=mixtures, layers=layers, time_dist=False, inference=True, compile_model=False, print_summary=True)
+    decoder.load_weights(model_file)
+    return decoder
+
+
 # Performance Helper Functions
+SCALE_FACTOR = 10  # scales input and output from the model. Should be the same between training and inference.
 
 
 def perf_df_to_array(perf_df):
@@ -193,12 +202,3 @@ def plot_double_2d(perf1, perf2, name="foo", saving=False):
         plt.close()
     else:
         plt.show()
-
-
-def load_robojam_inference_model(model_file=""):
-    """Returns a Keras RoboJam model loaded from a file"""
-    # TODO: make this parse the name to get the hyperparameters.
-    # Decoding Model
-    decoder = decoder = build_robojam_model(seq_len=1, hidden_units=512, num_mixtures=5, layers=2, time_dist=False, inference=True, compile_model=False, print_summary=True)
-    decoder.load_weights(model_file)
-    return decoder

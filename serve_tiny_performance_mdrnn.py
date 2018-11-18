@@ -27,8 +27,7 @@ with compute_graph.as_default():
 # Network hyper-parameters:
 N_MIX = 5
 N_LAYERS = 2
-N_UNITS = 256
-
+N_UNITS = 512
 TEMP = 1.5
 SIG_TEMP = 0.01
 MODEL_FILE = 'models/robojam-td-model-E12-VL-4.57.hdf5'
@@ -67,7 +66,7 @@ if __name__ == "__main__":
     tf.logging.info("Starting RoboJam Server.")
     K.set_session(sess)
     with compute_graph.as_default():
-        net = robojam.load_robojam_inference_model(model_file=MODEL_FILE)
+        net = robojam.load_robojam_inference_model(model_file=MODEL_FILE, layers=N_LAYERS, units=N_UNITS, mixtures=N_MIX)
     app.run(host='0.0.0.0', ssl_context=('keys/cert.pem', 'keys/key.pem'))
 
 
