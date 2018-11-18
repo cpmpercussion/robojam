@@ -10,6 +10,7 @@ import keras
 # from .sample_data import *
 # from .tiny_performance_player import *
 # from .tiny_performance_loader import *
+import matplotlib.pyplot as plt
 
 
 def build_robojam_model(seq_len=30, hidden_units=256, num_mixtures=5, layers=2, time_dist=True, inference=False, compile_model=True, print_summary=True):

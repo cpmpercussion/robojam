@@ -5,6 +5,7 @@ datasets
 performances
 output-logs
 notebooks/output-logs
+logs
 .DS_Store
 # standard python gitignore
 
