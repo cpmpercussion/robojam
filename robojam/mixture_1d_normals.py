@@ -93,7 +93,7 @@ def sample_categorical(dist, temp=1.0):
         if val == 1:
             return idx[0]
     tf.logging.info('Error sampling mixture model.')
-    return -1        
+    return -1   
 
 
 def sample_gaussian(mu, s, temp=1.0, greedy=False):
