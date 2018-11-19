@@ -4,10 +4,8 @@
 FROM tensorflow/tensorflow:latest-py3
 MAINTAINER Charles Martin "charlepm@ifi.uio.no"
 
-RUN apt-get update
-RUN apt-get install git
-RUN git clone https://github.com/cpmpercussion/robojam.git
-RUN cd robojam
-RUN pip install -r requirements.txt
-RUN ./get_models.sh
-RUN python ./serve_tiny_performance_mdrnn.py
+COPY requirements.txt /tmp/
+RUN pip install --requirement /tmp/requirements.txt
+COPY . /tmp/
+WORKDIR /tmp
+CMD [ "python", "./serve_tiny_performance_mdrnn.py" ]
