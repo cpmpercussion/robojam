@@ -113,6 +113,7 @@ def constrain_touch(touch):
     touch[2] = max(touch[2], 0.001)  # dt # define minimum time step
     return touch
 
+
 def generate_random_tiny_performance(model, n_mixtures, first_touch, time_limit=5.0, steps_limit=1000, temp=1.0, sigma_temp=0.0):
     """Generates a tiny performance up to 5 seconds in length."""
     time = 0
@@ -163,6 +164,10 @@ def divide_performance_into_swipes(perf_df):
         remainder = remainder.iloc[remainder.index >= att]
     performance_swipes.append(remainder)
     return performance_swipes
+
+
+input_colour = 'darkblue'
+gen_colour = 'firebrick'
 
 
 def plot_2D(perf_df, name="foo", saving=False):
