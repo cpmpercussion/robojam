@@ -1,46 +1,94 @@
-"""Trains a 2D+1D MDRNN on the Metatone touchscreen performance data."""
-from __future__ import print_function
-import robojam
-import h5py
+#!/usr/local/bin/python3
+import keras
+from keras import backend as K
 import numpy as np
+import tensorflow as tf
 import random
+import robojam
 
-# Hyperparameters:
-SEQ_LEN = 256
-BATCH_SIZE = 128
-HIDDEN_UNITS = 256
-LAYERS = 3
-MIXES = 16
-EPOCHS = 5
+# Set up environment.
+# Only for GPU use:
+#import os
+#os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
-# These settings train for 2.1 epochs which is pretty good!
-SEED = 2345  # 2345 seems to be good.
+import tensorflow as tf
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.Session(config=config)
+from keras import backend as K
+K.set_session(sess)
 
+
+# Load tiny performance data:
+with np.load('./datasets/metatone_dataset.npz') as loaded:
+    loaded_raw = loaded['raw_perfs']
+    loaded_diff = loaded['diff_perfs']
+
+print("Loaded perfs:", len(loaded_raw), "and", len(loaded_diff))
+print("Num touches:", np.sum([len(l) for l in loaded_raw]))
+
+corpus = []
+
+for l in loaded_raw:
+    corpus.append(l[:,:-1])
+
+# Model Hyperparameters
+SEQ_LEN = 100
+SEQ_STEP = 10
+HIDDEN_UNITS = 512
+N_LAYERS = 2
+NUMBER_MIXTURES = 5
+TIME_DIST = True
+
+# Training Hyperparameters:
+BATCH_SIZE = 64
+EPOCHS = 100
+VAL_SPLIT = 0.10
+
+# Set random seed for reproducibility
+SEED = 2345
 random.seed(SEED)
 np.random.seed(SEED)
-# tf.set_random_seed(5791)  # only works for current graph.
 
-microjam_data_file_name = "datasets/TinyPerformanceCorpus.h5"
-metatone_data_file_name = "datasets/MetatoneTinyPerformanceRecords.h5"
+# Restrict corpus to sequences longer than the corpus.
+corpus = [l for l in corpus if len(l) > SEQ_LEN+1]
+print("Corpus Examples:", len(corpus))
 
-with h5py.File(microjam_data_file_name, 'r') as data_file:
-    microjam_corpus = data_file['total_performances'][:]
-with h5py.File(metatone_data_file_name, 'r') as data_file:
-    metatone_corpus = data_file['total_performances'][:]
+# Prepare training data as X and Y.
+slices = []
+for seq in corpus:
+    slices += robojam.slice_sequence_examples(seq, SEQ_LEN+1, step_size=SEQ_STEP)
 
-# load metatone data and train MDRNN from that.
+X, y = robojam.seq_to_overlapping_format(slices)
 
-print("Loading Data")
-# Load Data
-sequence_loader = robojam.sample_data.SequenceDataLoader(num_steps=SEQ_LEN + 1, batch_size=BATCH_SIZE, corpus=metatone_corpus)
+X = np.array(X) * robojam.SCALE_FACTOR
+y = np.array(y) * robojam.SCALE_FACTOR
 
-print("Loading Network")
-# Setup network
-net = robojam.MixtureRNN(mode=robojam.NET_MODE_TRAIN, n_hidden_units=HIDDEN_UNITS, n_mixtures=MIXES, batch_size=BATCH_SIZE, sequence_length=SEQ_LEN, n_layers=LAYERS)
+print("Number of training examples:")
+print("X:", X.shape)
+print("y:", y.shape)
 
-print("Training Network:", net.model_name())
+# Setup Training Model
+model = robojam.build_robojam_model(seq_len=SEQ_LEN, hidden_units=HIDDEN_UNITS, num_mixtures=NUMBER_MIXTURES, layers=2, time_dist=TIME_DIST, inference=False, compile_model=True, print_summary=True)
+
+# Setup callbacks
+filepath = "robojam-metatone" + "-layers" + str(N_LAYERS) + "-units" + str(HIDDEN_UNITS) + "-mixtures" + str(NUMBER_MIXTURES) + "-scale" + str(robojam.SCALE_FACTOR) + "-E{epoch:02d}-VL{val_loss:.2f}.hdf5"
+checkpoint = keras.callbacks.ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+terminateOnNaN = keras.callbacks.TerminateOnNaN()
+tboard = keras.callbacks.TensorBoard(log_dir='./logs', histogram_freq=2, batch_size=32, write_graph=True, update_freq='epoch')
+
 # Train
-losses = net.train(sequence_loader, EPOCHS, saving=True)
-print(losses)
+history = model.fit(X, y, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_split=VAL_SPLIT, callbacks=[checkpoint, terminateOnNaN, tboard])
+#history = model.fit_generator(generator, steps_per_epoch=300, epochs=100, verbose=1, initial_epoch=0)
 
-print("Done")
+# Save final Model
+model.save('robojam-metatone-final.hdf5')  # creates a HDF5 file of the model
+
+# Plot the loss
+# %matplotlib inline
+# plt.figure(figsize=(10, 5))
+# plt.plot(history.history['loss'])
+# plt.plot(history.history['val_loss'])
+# plt.xlabel("epochs")
+# plt.ylabel("loss")
+# plt.show()

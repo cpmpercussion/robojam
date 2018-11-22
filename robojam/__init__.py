@@ -7,7 +7,7 @@ import pandas as pd
 import mdn
 import keras
 # from .model import *
-# from .sample_data import *
+from .sample_data import *
 # from .tiny_performance_player import *
 # from .tiny_performance_loader import *
 import matplotlib.pyplot as plt
@@ -73,7 +73,7 @@ def load_robojam_inference_model(model_file="", layers=2, units=512, mixtures=5)
 SCALE_FACTOR = 10  # scales input and output from the model. Should be the same between training and inference.
 
 
-def perf_df_to_array(perf_df):
+def perf_df_to_array(perf_df, include_moving=False):
     """Converts a dataframe of a performance into array a,b,dt format."""
     perf_df['dt'] = perf_df.time.diff()
     perf_df.dt = perf_df.dt.fillna(0.0)
@@ -85,18 +85,25 @@ def perf_df_to_array(perf_df):
     perf_df.at[perf_df[perf_df.x < 0].index, 'x'] = 0.0
     perf_df.at[perf_df[perf_df.y > 1].index, 'y'] = 1.0
     perf_df.at[perf_df[perf_df.y < 0].index, 'y'] = 0.0
-    return np.array(perf_df[['x', 'y', 'dt']])
+    if include_moving:
+        output = np.array(perf_df[['x', 'y', 'dt', 'moving']])
+    else:
+        output = np.array(perf_df[['x', 'y', 'dt']])
+    return output
 
 
 def perf_array_to_df(perf_array):
-    """Converts an array of a performance (a,b,dt format) into a dataframe."""
+    """Converts an array of a performance (a,b,dt(,moving) format) into a dataframe."""
     perf_array = perf_array.T
     perf_df = pd.DataFrame({'x': perf_array[0], 'y': perf_array[1], 'dt': perf_array[2]})
+    if len(perf_array) == 4:
+        perf_df['moving'] = perf_array[3]
+    else:
+        # As a rule of thumb, could classify taps with dt>0.1 as taps, dt<0.1 as moving touches.
+        perf_df['moving'] = 1
+        perf_df.at[perf_df[perf_df.dt > 0.1].index, 'moving'] = 0
     perf_df['time'] = perf_df.dt.cumsum()
     perf_df['z'] = 38.0
-    # As a rule of thumb, could classify taps with dt>0.1 as taps, dt<0.1 as moving touches.
-    perf_df['moving'] = 1
-    perf_df.at[perf_df[perf_df.dt > 0.1].index, 'moving'] = 0
     perf_df = perf_df.set_index(['time'])
     return perf_df[['x', 'y', 'z', 'moving']]
 

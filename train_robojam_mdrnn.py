@@ -57,51 +57,16 @@ SEED = 2345
 random.seed(SEED)
 np.random.seed(SEED)
 
-def batch_generator(seq_len, batch_size, dim, corpus):
-    # Create empty arrays to contain batch of features and labels#
-    batch_X = np.zeros((batch_size, seq_len, dim))
-    batch_y = np.zeros((batch_size, dim))
-    while True:
-        for i in range(batch_size):
-            # choose random example
-            l = random.choice(corpus)
-            last_index = len(l) - seq_len - 1
-            start_index = np.random.randint(0, high=last_index)
-            batch_X[i] = l[start_index:start_index+seq_len]
-            batch_y[i] = l[start_index+1:start_index+seq_len+1] #.reshape(1,dim)
-        yield batch_X, batch_y    
-
 # Restrict corpus to sequences longer than the corpus.
 corpus = [l for l in corpus if len(l) > SEQ_LEN+1]
 print("Corpus Examples:", len(corpus))
-# Produce the generator for training
-generator = batch_generator(SEQ_LEN, BATCH_SIZE, 3, corpus)
-
-
-# Functions for slicing up data
-def slice_sequence_examples(sequence, num_steps):
-    xs = []
-    for i in range(len(sequence) - num_steps - 1):
-        example = sequence[i: i + num_steps]
-        xs.append(example)
-    return xs
-
-
-def seq_to_overlapping_format(examples):
-    """Takes sequences of seq_len+1 and returns overlapping
-    sequences of seq_len."""
-    xs = []
-    ys = []
-    for ex in examples:
-        xs.append(ex[:-1])
-        ys.append(ex[1:])
-    return (xs, ys)
 
 # Prepare training data as X and Y.
 slices = []
 for seq in corpus:
-    slices += slice_sequence_examples(seq, SEQ_LEN+1)
-X, y = seq_to_overlapping_format(slices)
+    slices += robojam.slice_sequence_examples(seq, SEQ_LEN+1)
+
+X, y = robojam.seq_to_overlapping_format(slices)
 
 X = np.array(X) * robojam.SCALE_FACTOR
 y = np.array(y) * robojam.SCALE_FACTOR
