@@ -77,6 +77,9 @@ def generate_synthetic_3D_data():
     return np.array(df)
 
 
+# TODO: is this class still relevant?
+
+
 class SequenceDataLoader(object):
     """Manages data from a single sequence and generates epochs"""
 

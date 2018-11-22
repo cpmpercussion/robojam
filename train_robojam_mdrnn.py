@@ -2,24 +2,17 @@ import keras
 from keras import backend as K
 import numpy as np
 import tensorflow as tf
-import math
-import h5py
 import random
-import time
-import pandas as pd
-import mdn
 import robojam
+import os
+
 
 # Set up environment.
 # Only for GPU use:
-#import os
-#os.environ["CUDA_VISIBLE_DEVICES"]="1"
-
-import tensorflow as tf
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
-from keras import backend as K
 K.set_session(sess)
 
 
@@ -37,9 +30,6 @@ for l in loaded_raw:
     corpus.append(l[:,:-1])
 
 
-# Plot a bit of the data to have a look:
-#robojam.plot_2D(perf_array_to_df(random.choice(corpus)))
-
 # Model Hyperparameters
 SEQ_LEN = 30
 HIDDEN_UNITS = 512
@@ -50,10 +40,10 @@ TIME_DIST = True
 # Training Hyperparameters:
 BATCH_SIZE = 64
 EPOCHS = 100
-VAL_SPLIT=0.10
+VAL_SPLIT = 0.10
 
 # Set random seed for reproducibility
-SEED = 2345  
+SEED = 2345
 random.seed(SEED)
 np.random.seed(SEED)
 
