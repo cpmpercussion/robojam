@@ -12,8 +12,8 @@ import robojam
 
 # Set up environment.
 # Only for GPU use:
-#import os
-#os.environ["CUDA_VISIBLE_DEVICES"]="1"
+import os
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 import tensorflow as tf
 config = tf.ConfigProto()
