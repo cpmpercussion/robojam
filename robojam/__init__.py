@@ -177,10 +177,10 @@ input_colour = 'darkblue'
 gen_colour = 'firebrick'
 
 
-def plot_2D(perf_df, name="foo", saving=False):
+def plot_2D(perf_df, name="foo", saving=False, figsize=(8,8)):
     """Plot a 2D representation of a performance 2D"""
     swipes = divide_performance_into_swipes(perf_df)
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=figsize)
     for swipe in swipes:
         p = plt.plot(swipe.x, swipe.y, 'o-')
         plt.setp(p, color=gen_colour, linewidth=5.0)
@@ -195,9 +195,9 @@ def plot_2D(perf_df, name="foo", saving=False):
         plt.show()
 
         
-def plot_double_2d(perf1, perf2, name="foo", saving=False):
+def plot_double_2d(perf1, perf2, name="foo", saving=False, figsize=(8,8)):
     """Plot two performances in 2D"""
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=figsize)
     swipes = divide_performance_into_swipes(perf1)
     for swipe in swipes:
         p = plt.plot(swipe.x, swipe.y, 'o-')
