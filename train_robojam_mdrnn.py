@@ -12,7 +12,7 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
-nsess = tf.Session(config=config)
+sess = tf.Session(config=config)
 K.set_session(sess)
 
 
