@@ -69,10 +69,11 @@ print("y:", y.shape)
 model = robojam.build_robojam_model(seq_len=SEQ_LEN, hidden_units=HIDDEN_UNITS, num_mixtures=NUMBER_MIXTURES, layers=2, time_dist=TIME_DIST, inference=False, compile_model=True, print_summary=True)
 
 # Setup callbacks
-filepath = "robojam-model" + "-layers" + str(N_LAYERS) + "-units" + str(HIDDEN_UNITS) + "-mixtures" + str(NUMBER_MIXTURES) + "-scale" + str(robojam.SCALE_FACTOR) + "-E{epoch:02d}-VL{val_loss:.2f}.hdf5"
+model_path = "robojam-tinyperf" + "-layers" + str(N_LAYERS) + "-units" + str(HIDDEN_UNITS) + "-mixtures" + str(NUMBER_MIXTURES) + "-scale" + str(robojam.SCALE_FACTOR)
+filepath = model_path + "-E{epoch:02d}-VL{val_loss:.2f}.hdf5"
 checkpoint = keras.callbacks.ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
 terminateOnNaN = keras.callbacks.TerminateOnNaN()
-tboard = keras.callbacks.TensorBoard(log_dir='./logs', histogram_freq=2, batch_size=32, write_graph=True, update_freq='epoch')
+tboard = keras.callbacks.TensorBoard(log_dir='./logs/'+model_path, histogram_freq=2, batch_size=32, write_graph=True, update_freq='epoch')
 
 # Train
 history = model.fit(X, y, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_split=VAL_SPLIT, callbacks=[checkpoint, terminateOnNaN, tboard])
