@@ -1,4 +1,4 @@
-""" Loads touchscreen performance corpora into dataframes and numpy arrays suitable for training an MD-RNN. """
+""" Loads touchscreen performance corpora into dataframes and numpy arrays suitable for training an MDRNN. """
 from __future__ import print_function
 import os
 import pandas as pd

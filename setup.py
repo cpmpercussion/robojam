@@ -12,7 +12,7 @@ with open('LICENSE') as f:
 
 setup(
     name='robojam',
-    version='0.1.0',
+    version='1.0',
     description='A Recurrent Neural Network for generating musical touchscreen data.',
     long_description=readme,
     author='Charles P. Martin',

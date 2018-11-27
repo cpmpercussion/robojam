@@ -5,17 +5,15 @@ import numpy as np
 import tensorflow as tf
 import random
 import robojam
+import os
+
 
 # Set up environment.
 # Only for GPU use:
-#import os
-#os.environ["CUDA_VISIBLE_DEVICES"]="1"
-
-import tensorflow as tf
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
-from keras import backend as K
 K.set_session(sess)
 
 
