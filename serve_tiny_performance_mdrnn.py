@@ -30,8 +30,8 @@ N_LAYERS = 2
 N_UNITS = 512
 TEMP = 1.5
 SIG_TEMP = 0.01
-MODEL_FILE = 'models/robojam-td-model-E12-VL-4.57.hdf5'
-
+# MODEL_FILE = 'models/robojam-td-model-E12-VL-4.57.hdf5'
+MODEL_FILE = 'models/robojam-metatone-layers2-units512-mixtures5-scale10-E30-VL-5.65.hdf5'
 
 @app.route("/api/predict", methods=['POST'])
 def reaction():
