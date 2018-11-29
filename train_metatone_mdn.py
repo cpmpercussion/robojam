@@ -33,7 +33,7 @@ for l in loaded_raw:
 # Model Hyperparameters
 SEQ_LEN = 100
 SEQ_STEP = 10
-HIDDEN_UNITS = 512
+HIDDEN_UNITS = 1024 #512
 N_LAYERS = 2
 NUMBER_MIXTURES = 5
 TIME_DIST = True
