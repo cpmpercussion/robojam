@@ -28,14 +28,14 @@ print("Num touches:", np.sum([len(l) for l in loaded_raw]))
 corpus = []
 
 for l in loaded_raw:
-    corpus.append(l[:,:])  # Load data including moving column.
+    corpus.append(l[:, :])  # Load data including moving column.
 
 # Model Hyperparameters
 SEQ_LEN = 100
 SEQ_STEP = 10
 HIDDEN_UNITS = 512
 N_LAYERS = 2
-NUMBER_MIXTURES = 5
+NUMBER_MIXTURES = 10
 TIME_DIST = True
 
 # Training Hyperparameters:
@@ -70,6 +70,7 @@ print("y:", y.shape)
 model = robojam.build_robojam_model(seq_len=SEQ_LEN, hidden_units=HIDDEN_UNITS, num_mixtures=NUMBER_MIXTURES, layers=2, time_dist=TIME_DIST, inference=False, compile_model=True, print_summary=True, predict_moving=True)
 
 # Setup callbacks
+model_folder = "models/"
 model_path = "robojam-4D-metatone" + "-layers" + str(N_LAYERS) + "-units" + str(HIDDEN_UNITS) + "-mixtures" + str(NUMBER_MIXTURES) + "-scale" + str(robojam.SCALE_FACTOR)
 filepath = model_path + "-E{epoch:02d}-VL{val_loss:.2f}.hdf5"
 checkpoint = keras.callbacks.ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
