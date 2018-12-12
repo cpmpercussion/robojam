@@ -13,7 +13,7 @@ from .sample_data import *
 import matplotlib.pyplot as plt
 
 
-def build_robojam_model(seq_len=30, hidden_units=256, num_mixtures=5, layers=2, time_dist=True, inference=False, compile_model=True, print_summary=True):
+def build_robojam_model(seq_len=30, hidden_units=256, num_mixtures=5, layers=2, time_dist=True, inference=False, compile_model=True, print_summary=True, predict_moving=False):
     """Builds a RoboJam MDRNN model for training or inference.
 
     Keyword Arguments:
@@ -27,16 +27,19 @@ def build_robojam_model(seq_len=30, hidden_units=256, num_mixtures=5, layers=2, 
     print_summary : print summary after creating mdoe (default True)
     """
     print("Building RoboJam Model...")
-    out_dim = 3  # fixed in the model. x, t, dt, could add extra dim for moving/not moving
+    if predict_moving:
+        out_dim = 4  # x, y, dt, m
+    else:
+        out_dim = 3  # x, y, dt
     # Set up training mode
     stateful = False
     batch_shape = None
     # Set up inference mode.
     if inference:
         stateful = True
-        batch_shape = (1,1,out_dim)
+        batch_shape = (1, 1, out_dim)
     inputs = keras.layers.Input(shape=(seq_len,out_dim), name='inputs', batch_shape=batch_shape)
-    lstm_in = inputs # starter input for lstm
+    lstm_in = inputs  # starter input for lstm
     for layer_i in range(layers):
         ret_seq = True
         if (layer_i == layers - 1) and not time_dist:
@@ -52,19 +55,20 @@ def build_robojam_model(seq_len=30, hidden_units=256, num_mixtures=5, layers=2, 
     model = keras.models.Model(inputs=inputs, outputs=mdn_out)
 
     if compile_model:
-        loss_func = mdn.get_mixture_loss_func(out_dim,num_mixtures)
-        optimizer = keras.optimizers.Adam() # keras.optimizers.Adam(lr=0.0001))
+        loss_func = mdn.get_mixture_loss_func(out_dim, num_mixtures)
+        optimizer = keras.optimizers.Adam()
+        # keras.optimizers.Adam(lr=0.0001))
         model.compile(loss=loss_func, optimizer=optimizer)
 
     model.summary()
     return model
 
 
-def load_robojam_inference_model(model_file="", layers=2, units=512, mixtures=5):
+def load_robojam_inference_model(model_file="", layers=2, units=512, mixtures=5, predict_moving=False):
     """Returns a Keras RoboJam model loaded from a file"""
     # TODO: make this parse the name to get the hyperparameters.
     # Decoding Model
-    decoder = decoder = build_robojam_model(seq_len=1, hidden_units=units, num_mixtures=mixtures, layers=layers, time_dist=False, inference=True, compile_model=False, print_summary=True)
+    decoder = decoder = build_robojam_model(seq_len=1, hidden_units=units, num_mixtures=mixtures, layers=layers, time_dist=False, inference=True, compile_model=False, print_summary=True, predict_moving=predict_moving)
     decoder.load_weights(model_file)
     return decoder
 
@@ -108,52 +112,65 @@ def perf_array_to_df(perf_array):
     return perf_df[['x', 'y', 'z', 'moving']]
 
 
-def random_touch():
+def random_touch(with_moving=False):
     """Generate a random tiny performance touch."""
-    return np.array([np.random.rand(), np.random.rand(), 0.01])
+    if with_moving:
+        return np.array([np.random.rand(), np.random.rand(), 0.01, 0])
+    else:
+        return np.array([np.random.rand(), np.random.rand(), 0.01])
 
 
-def constrain_touch(touch):
+def constrain_touch(touch, with_moving=False):
     """Constrain touch values from the MDRNN"""
     touch[0] = min(max(touch[0], 0.0), 1.0)  # x in [0,1]
     touch[1] = min(max(touch[1], 0.0), 1.0)  # y in [0,1]
     touch[2] = max(touch[2], 0.001)  # dt # define minimum time step
+    if with_moving:
+        touch[3] = np.greater(touch[3], 0.5) * 1.0
     return touch
 
 
-def generate_random_tiny_performance(model, n_mixtures, first_touch, time_limit=5.0, steps_limit=1000, temp=1.0, sigma_temp=0.0):
+def generate_random_tiny_performance(model, n_mixtures, first_touch, time_limit=5.0, steps_limit=1000, temp=1.0, sigma_temp=0.0, predict_moving=False):
     """Generates a tiny performance up to 5 seconds in length."""
+    if predict_moving:
+        out_dim = 4
+    else:
+        out_dim = 3
     time = 0
     steps = 0
     previous_touch = first_touch
-    performance = [previous_touch.reshape((3,))]
+    performance = [previous_touch.reshape((out_dim,))]
     while (steps < steps_limit and time < time_limit):
-        params = model.predict(previous_touch.reshape(1,1,3) * SCALE_FACTOR)
-        previous_touch = mdn.sample_from_output(params[0], 3, n_mixtures, temp=temp, sigma_temp=sigma_temp) / SCALE_FACTOR
-        output_touch = previous_touch.reshape(3,)
-        output_touch = constrain_touch(output_touch)
-        performance.append(output_touch.reshape((3,)))
+        params = model.predict(previous_touch.reshape(1,1,out_dim) * SCALE_FACTOR)
+        previous_touch = mdn.sample_from_output(params[0], out_dim, n_mixtures, temp=temp, sigma_temp=sigma_temp) / SCALE_FACTOR
+        output_touch = previous_touch.reshape(out_dim,)
+        output_touch = constrain_touch(output_touch, with_moving=predict_moving)
+        performance.append(output_touch.reshape((out_dim,)))
         steps += 1
         time += output_touch[2]
     return np.array(performance)
 
 
-def condition_and_generate(model, perf, n_mixtures, time_limit=5.0, steps_limit=1000, temp=1.0, sigma_temp=0.0):
+def condition_and_generate(model, perf, n_mixtures, time_limit=5.0, steps_limit=1000, temp=1.0, sigma_temp=0.0, predict_moving=False):
     """Conditions the network on an existing tiny performance, then generates a new one."""
+    if predict_moving:
+        out_dim = 4
+    else:
+        out_dim = 3
     time = 0
     steps = 0
     # condition
     for touch in perf:
-        params = model.predict(touch.reshape(1,1,3) * SCALE_FACTOR)
-        previous_touch = mdn.sample_from_output(params[0], 3, n_mixtures, temp=temp, sigma_temp=sigma_temp) / SCALE_FACTOR
-        output = [previous_touch.reshape((3,))]
+        params = model.predict(touch.reshape(1, 1, out_dim) * SCALE_FACTOR)
+        previous_touch = mdn.sample_from_output(params[0], out_dim, n_mixtures, temp=temp, sigma_temp=sigma_temp) / SCALE_FACTOR
+        output = [previous_touch.reshape((out_dim,))]
     # generate
     while (steps < steps_limit and time < time_limit):
-        params = model.predict(previous_touch.reshape(1,1,3) * SCALE_FACTOR)
-        previous_touch = mdn.sample_from_output(params[0], 3, n_mixtures, temp=temp, sigma_temp=sigma_temp) / SCALE_FACTOR
-        output_touch = previous_touch.reshape(3,)
-        output_touch = constrain_touch(output_touch)
-        output.append(output_touch.reshape((3,)))
+        params = model.predict(previous_touch.reshape(1, 1, out_dim) * SCALE_FACTOR)
+        previous_touch = mdn.sample_from_output(params[0], out_dim, n_mixtures, temp=temp, sigma_temp=sigma_temp) / SCALE_FACTOR
+        output_touch = previous_touch.reshape(out_dim,)
+        output_touch = constrain_touch(output_touch, with_moving=predict_moving)
+        output.append(output_touch.reshape((out_dim,)))
         steps += 1
         time += output_touch[2]
     net_output = np.array(output)
@@ -177,7 +194,7 @@ input_colour = 'darkblue'
 gen_colour = 'firebrick'
 
 
-def plot_2D(perf_df, name="foo", saving=False, figsize=(8,8)):
+def plot_2D(perf_df, name="foo", saving=False, figsize=(8, 8)):
     """Plot a 2D representation of a performance 2D"""
     swipes = divide_performance_into_swipes(perf_df)
     plt.figure(figsize=figsize)
@@ -194,8 +211,8 @@ def plot_2D(perf_df, name="foo", saving=False, figsize=(8,8)):
     else:
         plt.show()
 
-        
-def plot_double_2d(perf1, perf2, name="foo", saving=False, figsize=(8,8)):
+
+def plot_double_2d(perf1, perf2, name="foo", saving=False, figsize=(8, 8)):
     """Plot two performances in 2D"""
     plt.figure(figsize=figsize)
     swipes = divide_performance_into_swipes(perf1)
