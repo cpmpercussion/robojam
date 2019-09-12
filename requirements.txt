@@ -1,9 +1,11 @@
 tensorflow
 tensorflow-probability
+keras
+keras-mdn-layer
 numpy
 pandas
 flask
 flask_cors
 pyopenssl
 h5py
-keras
+
