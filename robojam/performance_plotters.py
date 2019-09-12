@@ -1,7 +1,7 @@
 """Functions to Plot RoboJam Performances
 """
 import matplotlib.pyplot as plt
-
+from robojam import divide_performance_into_swipes
 
 input_colour = 'darkblue'
 gen_colour = 'firebrick'
