@@ -1,15 +1,8 @@
 #
 # Run the Robojam Server
 #
-FROM tensorflow/tensorflow:latest-py3
-MAINTAINER Charles Martin "charlepm@ifi.uio.no"
-
-COPY requirements.txt /tmp/
-RUN pip install --requirement /tmp/requirements.txt
-COPY models/ /tmp/models/
-COPY keys/ /tmp/keys/
-COPY mdn/ /tmp/mdn/
-COPY robojam/ /tmp/robojam/
-COPY serve_tiny_performance_mdrnn.py /tmp/
-WORKDIR /tmp
+FROM tensorflow/tensorflow:2.6.0
+MAINTAINER Charles Martin "cpm@charlesmartin.com.au"
+COPY . ./
+RUN pip install tensorflow-probability==0.13.0 keras-mdn-layer==0.3.0 pandas flask flask_cors pyopenssl
 CMD [ "python", "./serve_tiny_performance_mdrnn.py" ]

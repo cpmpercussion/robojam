@@ -12,11 +12,11 @@ with open('LICENSE') as f:
 
 setup(
     name='robojam',
-    version='1.0',
+    version='1.1',
     description='A Recurrent Neural Network for generating musical touchscreen data.',
     long_description=readme,
     author='Charles P. Martin',
-    author_email='charlepm@ifi.uio.no',
+    author_email='cpm@charlesmartin.com.au',
     url='https://github.com/cpmpercussion/robojam',
     license=license,
     packages=find_packages(exclude=('tests', 'docs'))

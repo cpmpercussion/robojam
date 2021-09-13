@@ -1,0 +1,9 @@
+DOCKERHUB_USERNAME = charlepm
+CONTAINER_NAME = robojam
+CONTAINER_VERSION = 0.2.0
+
+build: Dockerfile
+	docker build --tag $(DOCKERHUB_USERNAME)/$(CONTAINER_NAME):$(CONTAINER_VERSION) .
+
+push: build
+	docker push $(DOCKERHUB_USERNAME)/$(CONTAINER_NAME):$(CONTAINER_VERSION)

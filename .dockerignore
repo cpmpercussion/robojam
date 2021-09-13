@@ -1,0 +1,15 @@
+mdn
+notebooks
+.gitignore
+evaluate_mixture_rnn.py
+get_datasets.sh
+get_models.sh
+LICENSE.md
+Makefile
+README.md
+setup.py
+test_mdrnn_initialisation.py
+test_mixture_distribution.py
+train_4D_mdn.py
+train_metatone_mdn.py
+train_robojam_mdrnn.py

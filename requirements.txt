@@ -1,11 +1,9 @@
-tensorflow
-tensorflow-probability
-keras
-keras-mdn-layer
+tensorflow==2.6.0
+tensorflow-probability==0.13.0
+keras-mdn-layer==0.3.0
 numpy
 pandas
 flask
 flask_cors
 pyopenssl
 h5py
-

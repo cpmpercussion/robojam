@@ -4,12 +4,9 @@ University of Oslo, Norway.
 """
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 import mdn
-import keras
-# from .model import *
 from .sample_data import *
-# from .tiny_performance_player import *
-# from .tiny_performance_loader import *
 
 
 def build_robojam_model(seq_len=30, hidden_units=256, num_mixtures=5, layers=2, time_dist=True, inference=False, compile_model=True, print_summary=True, predict_moving=False):
@@ -37,26 +34,25 @@ def build_robojam_model(seq_len=30, hidden_units=256, num_mixtures=5, layers=2, 
     if inference:
         stateful = True
         batch_shape = (1, 1, out_dim)
-    inputs = keras.layers.Input(shape=(seq_len,out_dim), name='inputs', batch_shape=batch_shape)
+    inputs = tf.keras.Input(name='inputs', batch_shape=batch_shape) # shape=(seq_len,out_dim)
     lstm_in = inputs  # starter input for lstm
     for layer_i in range(layers):
         ret_seq = True
         if (layer_i == layers - 1) and not time_dist:
             # return sequences false if last layer, and not time distributed.
             ret_seq = False
-        lstm_out = keras.layers.LSTM(hidden_units, name='lstm'+str(layer_i), return_sequences=ret_seq, stateful=stateful)(lstm_in)
+        lstm_out = tf.keras.layers.LSTM(hidden_units, name='lstm'+str(layer_i), return_sequences=ret_seq, stateful=stateful)(lstm_in)
         lstm_in = lstm_out
 
     mdn_layer = mdn.MDN(out_dim, num_mixtures, name='mdn_outputs')
     if time_dist:
-        mdn_layer = keras.layers.TimeDistributed(mdn_layer, name='td_mdn')
+        mdn_layer = tf.keras.layers.TimeDistributed(mdn_layer, name='td_mdn')
     mdn_out = mdn_layer(lstm_out)  # apply mdn
-    model = keras.models.Model(inputs=inputs, outputs=mdn_out)
+    model = tf.keras.Model(inputs=inputs, outputs=mdn_out)
 
     if compile_model:
         loss_func = mdn.get_mixture_loss_func(out_dim, num_mixtures)
-        optimizer = keras.optimizers.Adam()
-        # keras.optimizers.Adam(lr=0.0001))
+        optimizer = tf.keras.optimizers.Adam()
         model.compile(loss=loss_func, optimizer=optimizer)
 
     model.summary()
@@ -64,7 +60,7 @@ def build_robojam_model(seq_len=30, hidden_units=256, num_mixtures=5, layers=2, 
 
 
 def load_robojam_inference_model(model_file="", layers=2, units=512, mixtures=5, predict_moving=False):
-    """Returns a Keras RoboJam model loaded from a file"""
+    """Returns a RoboJam model loaded from a file"""
     # TODO: make this parse the name to get the hyperparameters.
     # Decoding Model
     decoder = decoder = build_robojam_model(seq_len=1, hidden_units=units, num_mixtures=mixtures, layers=layers, time_dist=False, inference=True, compile_model=False, print_summary=True, predict_moving=predict_moving)

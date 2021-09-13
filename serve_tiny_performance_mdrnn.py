@@ -1,27 +1,23 @@
 #!/usr/bin/env python3
 """A flask server for Robojam"""
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 import json
 import time
 from io import StringIO
 import pandas as pd
-import keras
 import tensorflow as tf
 import robojam
-from keras import backend as K
+from tensorflow.compat.v1.keras import backend as K
 from flask import Flask, request
 from flask_cors import CORS
 
 
 # Start server.
-tf.logging.set_verbosity(tf.logging.INFO)  # set logging.
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)  # set logging.
 app = Flask(__name__)
 cors = CORS(app)
-compute_graph = tf.Graph()
+compute_graph = tf.compat.v1.Graph()
 with compute_graph.as_default():
-    sess = tf.Session()
+    sess = tf.compat.v1.Session()
 
 
 # Network hyper-parameters:
@@ -36,14 +32,14 @@ MODEL_FILE = 'models/robojam-metatone-layers2-units512-mixtures5-scale10-E30-VL-
 @app.route("/api/predict", methods=['POST'])
 def reaction():
     """Produces a Reaction Performance using the MDRNN."""
-    tf.logging.info("Responding to a prediction request.")
+    tf.compat.v1.logging.info("Responding to a prediction request.")
     start = time.time()
     data = request.data.decode("utf-8")
     if data == "":
         params = request.form
         input_perf = json.loads(params['perf'])
     else:
-        tf.logging.info("Perf in data as string.")
+        tf.compat.v1.logging.info("Perf in data as string.")
         params = json.loads(data)
         input_perf = params['perf']
     input_perf_df = pd.read_csv(StringIO(input_perf), parse_dates=False)
@@ -57,13 +53,13 @@ def reaction():
     out_df.at[out_df[:1].index, 'moving'] = 0  # set first touch to a tap
     out_perf_string = out_df.to_csv()
     json_data = json.dumps({'response': out_perf_string})
-    tf.logging.info("Completed request, time was: %f" % (time.time() - start))
+    tf.compat.v1.logging.info("Completed request, time was: %f" % (time.time() - start))
     return json_data
 
 
 if __name__ == "__main__":
     """Start a TinyPerformance MDRNN Server"""
-    tf.logging.info("Starting RoboJam Server.")
+    tf.compat.v1.logging.info("Starting RoboJam Server.")
     K.set_session(sess)
     with compute_graph.as_default():
         net = robojam.load_robojam_inference_model(model_file=MODEL_FILE, layers=N_LAYERS, units=N_UNITS, mixtures=N_MIX)
