@@ -1,4 +1,4 @@
-tensorflow==2.6.0
+tensorflow==2.11.1
 tensorflow-probability==0.13.0
 keras-mdn-layer==0.3.0
 numpy
